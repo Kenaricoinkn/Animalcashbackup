@@ -459,6 +459,26 @@
   <!-- ========= Scripts ========= -->
 <script type="module" src="js/app-core.js"></script>
   <script type="module" src="js/firebase-init.js"></script>
+
+<!-- ⬇️ Tambahkan guard ini -->
+<script type="module">
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const auth = window.App?.firebase?.auth || getAuth();
+  const app  = document.getElementById('app');
+  const gate = document.getElementById('gate');
+
+  // TUNGGU status autentikasi final dulu baru putuskan
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      app?.classList.remove('hidden');
+      gate?.classList.add('hidden');
+    } else {
+      // belum login → lempar ke halaman masuk
+      location.replace('index.html');
+    }
+  });
+</script>
   <script type="module" src="js/i18n.js"></script>
   <script type="module" src="js/features/withdraw.js"></script>
   <script type="module" src="js/dashboard.js"></script>
@@ -473,7 +493,16 @@
     initFarmCards();
   });
 </script>
+<!-- Profile (ringkasan farm dari users/{uid}/animals) -->
+<script type="module">
+  import { initProfile } from './js/features/profile.js';
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+  const auth = window.App?.firebase?.auth || getAuth();
+  onAuthStateChanged(auth, (user) => {
+    if (user) initProfile(user);
+  });
+</script>
   <!-- Fallback: buka modal QR walau farm.js gagal -->
   <script>
     document.addEventListener('click', function (e) {
