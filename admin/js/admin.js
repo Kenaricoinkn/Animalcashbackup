@@ -1,4 +1,4 @@
-// admin/js/admin.js
+// admin/js/admin.js â€” aligned with rules (transactions uses type/refId)
 import {
   getAuth, onAuthStateChanged, signOut,
   RecaptchaVerifier, signInWithPhoneNumber,
@@ -8,6 +8,7 @@ import {
   getFirestore, collection, query, where, orderBy, limit, getDocs,
   doc, updateDoc, increment, addDoc, serverTimestamp, getDoc, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 /* =================== CONFIG (jalur darurat) =================== */
 const FALLBACK_ADMIN_UIDS = [
   // "QPQaZBzEvvV2Ob7kUpnsEVwm6dk1"
@@ -50,7 +51,6 @@ $('#btnRefreshWd')?.addEventListener('click', loadWdPending);
 $('#btnRefreshAll')?.addEventListener('click', loadHistoryAll);
 
 /* =================== FIREBASE =================== */
-/* =================== FIREBASE =================== */
 const auth = window.App?.firebase?.auth || getAuth();
 const db   = window.App?.firebase?.db   || getFirestore();
 
@@ -80,7 +80,7 @@ btnSendOTP?.addEventListener('click', async ()=>{
   try{
     loginMsg.textContent = '';
     const phone = (phoneInput.value||'').trim();
-    if(!/^\+?\d{8,15}$/.test(phone)){ loginMsg.textContent='Format nomor tidak valid. Gunakan +62…'; return; }
+    if(!/^\+?\d{8,15}$/.test(phone)){ loginMsg.textContent='Format nomor tidak valid. Gunakan +62â€¦'; return; }
     initRecaptcha();
     confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
     otpWrap.classList.remove('hidden');
@@ -105,7 +105,6 @@ btnVerifyOTP?.addEventListener('click', async ()=>{
     const usnap = await getDoc(doc(db,'users',uid));
     if(!usnap.exists()){ loginMsg.textContent=`Dokumen users/${uid} tidak ditemukan.`; return; }
     const u = usnap.data()||{};
-    console.log('[DEBUG] user doc:', u);
 
     // 3) Cek hak admin
     const token         = await user.getIdTokenResult();
@@ -116,7 +115,7 @@ btnVerifyOTP?.addEventListener('click', async ()=>{
 
     if(!isAdmin){ loginMsg.textContent='Nomor ini tidak memiliki hak admin (isAdmin=false).'; return; }
 
-    // 4) PIN Admin (opsional — wajib jika field ada)
+    // 4) PIN Admin (opsional â€” wajib jika field ada)
     if(u.adminPinHash){
       const pin=(pinInput.value||'').trim();
       if(!pin){ loginMsg.textContent='Masukkan PIN Admin.'; return; }
@@ -125,7 +124,7 @@ btnVerifyOTP?.addEventListener('click', async ()=>{
       if(inHash!==docHash){ loginMsg.textContent='PIN Admin salah.'; return; }
     }
 
-    // 5) Sukses → buka panel
+    // 5) Sukses â†’ buka panel
     loginCard.classList.add('hidden');
     adminArea.classList.remove('hidden');
     emailBox.textContent = user.phoneNumber || user.uid;
@@ -185,7 +184,7 @@ async function loadPurchPending(){
         id:d.id,
         time:toLocal(v.createdAt),
         uid:v.uid,
-        item:`${v.animal||'-'} • harian ${fmtRp(v.daily||0)} • ${v.contractDays||0} hari`,
+        item:`${v.animal||'-'} â€¢ harian ${fmtRp(v.daily||0)} â€¢ ${v.contractDays||0} hari`,
         price:v.price,
         proofUrl:v.proofUrl||'',
         status:v.status||'pending'
@@ -196,7 +195,7 @@ async function loadPurchPending(){
   else{ tblPurchBody.innerHTML=rows.join(''); bindPurchActions(tblPurchBody); }
 }
 function renderPurchRow({id,time,uid,item,price,proofUrl,status}){
-  const proof = proofUrl ? `<a href="${proofUrl}" target="_blank" class="text-sky-300 underline">Bukti</a>` : `<span class="opacity-60">—</span>`;
+  const proof = proofUrl ? `<a href="${proofUrl}" target="_blank" class="text-sky-300 underline">Bukti</a>` : `<span class="opacity-60">â€”</span>`;
   return `
     <tr data-id="${id}">
       <td class="py-2">${time}</td>
@@ -262,13 +261,12 @@ async function approvePurchase(e){
         });
       }
 
-      // 3) catat log transaksi (opsional, untuk histori admin)
+      // 3) catat log sesuai rules (pakai 'type' & 'refId')
       const tRef = doc(collection(db, 'transactions'));
       tx.set(tRef, {
         uid,
-        kind: 'purchase_approved',
-        purchaseId: id,
-        animal,
+        type: 'purchase_approved',
+        refId: id,
         amount: price,
         createdAt: serverTimestamp()
       });
@@ -295,6 +293,16 @@ async function rejectPurchase(e){
     if(d.status !== 'pending') throw new Error('Status bukan pending.');
 
     await updateDoc(ref,{ status:'rejected', rejectedAt: serverTimestamp() });
+
+    // Tulis log sesuai rules
+    await addDoc(collection(db,'transactions'), {
+      uid: d.uid,
+      type: 'purchase_rejected',
+      refId: id,
+      amount: Number(d.price || 0),
+      createdAt: serverTimestamp()
+    });
+
     await loadPurchPending();
     await loadHistoryAll();
   }catch(err){
@@ -316,8 +324,8 @@ async function loadWdPending(){
     snap.forEach(d=>{
       const v=d.data()||{};
       const tujuan = v.type==='ewallet'
-        ? `${v.provider||'-'} • ${v.number||'-'} • ${v.name||'-'}`
-        : `${v.bank||'-'} • ${v.account||'-'} • ${v.owner||'-'}`;
+        ? `${v.provider||'-'} â€¢ ${v.number||'-'} â€¢ ${v.name||'-'}`
+        : `${v.bank||'-'} â€¢ ${v.account||'-'} â€¢ ${v.owner||'-'}`;
       rows.push(renderWdRow({
         id:d.id, time:toLocal(v.createdAt), uid:v.uid, tujuan, amount:v.amount, status:v.status||'pending'
       }));
@@ -352,10 +360,12 @@ async function approveWithdrawal(e){
     const d=snap.data(); if(d.status!=='pending') throw new Error('Status bukan pending.');
 
     const uid=d.uid; const amount=Number(d.amount||0);
-    await updateDoc(ref,{status:'approved'});
+    await updateDoc(ref,{status:'approved', approvedAt: serverTimestamp()});
+
     await updateDoc(doc(db,'users',uid), { balance: increment(-amount) });
+
     await addDoc(collection(db,'transactions'), {
-      uid, kind:'withdrawal_approved', withdrawalId:id, amount, createdAt:serverTimestamp()
+      uid, type:'withdrawal_approved', refId:id, amount, createdAt:serverTimestamp()
     });
 
     await loadWdPending(); await loadHistoryAll();
@@ -364,7 +374,16 @@ async function approveWithdrawal(e){
 async function rejectWithdrawal(e){
   try{
     const tr=e.target.closest('tr'); const id=tr?.dataset?.id; if(!id) return;
-    await updateDoc(doc(db,'withdrawals',id), { status:'rejected' });
+    const ref=doc(db,'withdrawals',id); const snap=await getDoc(ref);
+    if(!snap.exists()) throw new Error('Doc tidak ditemukan.');
+    const d=snap.data();
+
+    await updateDoc(ref,{ status:'rejected', rejectedAt: serverTimestamp() });
+
+    await addDoc(collection(db,'transactions'), {
+      uid: d.uid, type:'withdrawal_rejected', refId:id, amount:Number(d.amount||0), createdAt:serverTimestamp()
+    });
+
     await loadWdPending(); await loadHistoryAll();
   }catch(err){ console.error(err); toast('Gagal reject withdrawal.'); }
 }
@@ -385,7 +404,7 @@ async function loadHistoryAll(){
       rows.push(renderHist({
         time:toLocal(v.createdAt), jenis:'Purchase', uid:v.uid,
         amount:v.price,
-        ref: v.proofUrl ? `<a href="${v.proofUrl}" target="_blank" class="text-sky-300 underline">Bukti</a>` : '—',
+        ref: v.proofUrl ? `<a href="${v.proofUrl}" target="_blank" class="text-sky-300 underline">Bukti</a>` : 'â€”',
         status:v.status
       }));
     });
@@ -398,7 +417,7 @@ async function loadHistoryAll(){
     const sw=await getDocs(qw);
     sw.forEach(d=>{
       const v=d.data()||{};
-      const tujuan=v.type==='ewallet' ? `${v.provider||'-'} • ${v.number||'-'}` : `${v.bank||'-'} • ${v.account||'-'}`;
+      const tujuan=v.type==='ewallet' ? `${v.provider||'-'} â€¢ ${v.number||'-'}` : `${v.bank||'-'} â€¢ ${v.account||'-'}`;
       rows.push(renderHist({
         time:toLocal(v.createdAt), jenis:'Withdrawal', uid:v.uid,
         amount:v.amount, ref:escapeHtml(tujuan), status:v.status
