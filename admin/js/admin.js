@@ -68,11 +68,13 @@ let confirmationResult = null;
 // Recaptcha
 function initRecaptcha(){
   if (recaptchaVerifier) return;
+  const isSmall = Math.min(window.innerWidth, window.innerHeight) <= 480;
   recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha', {
-    size: 'normal',
+    size: isSmall ? 'invisible' : 'normal',
     callback: () => {},
     'expired-callback': () => {}
   });
+  try { recaptchaVerifier.render(); } catch(_) {}
 }
 
 // Kirim OTP
@@ -82,10 +84,19 @@ btnSendOTP?.addEventListener('click', async ()=>{
     const phone = (phoneInput.value||'').trim();
     if(!/^\+?\d{8,15}$/.test(phone)){ loginMsg.textContent='Format nomor tidak valid. Gunakan +62…'; return; }
     initRecaptcha();
+    try { await recaptchaVerifier.render(); } catch(_e) {}
     confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
     otpWrap.classList.remove('hidden');
     toast('OTP terkirim. Cek SMS.');
-  }catch(e){ console.error(e); loginMsg.textContent='Gagal mengirim OTP. Coba lagi.'; }
+  }catch(e){
+    console.error(e);
+    const msg = String(e && (e.code||e.message)||e);
+    if (msg.includes('auth/missing-recaptcha-token') || msg.includes('auth/invalid-app-credential')) {
+      loginMsg.textContent = 'Verifikasi gagal: kemungkinan cookie pihak ketiga diblokir atau domain belum diotorisasi. Aktifkan "Allow third-party cookies" untuk situs ini dan pastikan domain sudah ditambahkan di Firebase Authentication > Settings > Authorized domains.';
+    } else {
+      loginMsg.textContent='Gagal mengirim OTP. Coba lagi.';
+    }
+  }
 });
 
 // Verifikasi OTP (+ cek admin + cek PIN hash)
