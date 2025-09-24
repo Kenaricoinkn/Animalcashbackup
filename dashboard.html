@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Animals Cash — Dashboard</title>
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/bg-anim.css"/>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col bg-anim">
+
+  <!-- Gradient defs (opsional untuk ikon) -->
+  <svg aria-hidden="true" width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="icGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%"  stop-color="#a3f5ff"/>
+        <stop offset="55%" stop-color="#8be7ff"/>
+        <stop offset="100%" stop-color="#8ef0c8"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- Topbar -->
+  <header class="px-4 pt-4">
+    <div class="flex items-center justify-between">
+      <div class="min-w-0"><span class="brand-title truncate">Animals Cash</span></div>
+      <div class="flex items-center gap-2">
+        <button class="icon-chip" aria-label="pesan">💬</button>
+        <button id="btnLanguage" class="lang-chip">
+          <span>🌐</span><span id="langLabel">bahasa Indonesia</span>
+        </button>
+      </div>
+    </div>
+    <div class="mt-3 search-pill"></div>
+  </header>
+
+  <!-- Gate (loading / guard sebelum auth ready) -->
+  <div id="gate" class="px-4 py-4 text-center text-slate-300">Memuat...</div>
+
+  <!-- Konten utama -->
+  <main id="app" class="hidden flex-1 px-4 pb-20 pt-1">
+
+    <!-- ===================== HOME ===================== -->
+    <section id="homeHeader" class="tab-content">
+      <!-- Slider -->
+      <div class="relative overflow-hidden rounded-2xl mb-2 ring-1 ring-white/10">
+        <div id="homeSlider" class="flex transition-transform duration-700 ease-in-out">
+          <!-- Cow -->
+          <div class="w-full flex-shrink-0 relative">
+            <img src="img/cow.png" alt="Cow"
+                 class="w-full h-36 object-contain bg-slate-900 rounded-xl">
+            <div class="absolute bottom-2 left-2 bg-black/45 backdrop-blur px-3 py-1 rounded-lg text-sm">
+              🐄 <b>Cow</b> — Bonus <b>20%</b>
+            </div>
+          </div>
+          <!-- Chicken -->
+          <div class="w-full flex-shrink-0 relative">
+            <img src="img/chicken.png" alt="Chicken"
+                 class="w-full h-36 object-contain bg-slate-900 rounded-xl">
+            <div class="absolute bottom-2 left-2 bg-black/45 backdrop-blur px-3 py-1 rounded-lg text-sm">
+              🐓 <b>Chicken</b> — Bonus <b>10%</b>
+            </div>
+          </div>
+          <!-- Sheep -->
+          <div class="w-full flex-shrink-0 relative">
+            <img src="img/sheep.png" alt="Sheep"
+                 class="w-full h-36 object-contain bg-slate-900 rounded-xl">
+            <div class="absolute bottom-2 left-2 bg-black/45 backdrop-blur px-3 py-1 rounded-lg text-sm">
+              🐑 <b>Sheep</b> — Bonus <b>15%</b>
+            </div>
+          </div>
+        </div>
+        <!-- Dots -->
+        <div id="homeDots" class="absolute bottom-2 right-2 flex gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-white/70"></span>
+          <span class="w-2 h-2 rounded-full bg-white/30"></span>
+          <span class="w-2 h-2 rounded-full bg-white/30"></span>
+        </div>
+      </div>
+
+      <!-- Kartu ringkas -->
+      <!-- Total aset (HOME) -->
+<div class="glass p-4 rounded-2xl">
+  <div class="text-slate-300 text-sm">Total aset</div>
+  <div class="text-2xl font-bold home-total">Rp 0</div>
+  <div class="text-xs text-slate-400 home-total-approx">≈ Rp 0</div>
+</div>
+
+<!-- Akun Kuantitatif (HOME) -->
+<div class="glass p-4 rounded-2xl">
+  <div class="text-slate-300 text-sm">Akun Kuantitatif</div>
+  <div class="text-2xl font-bold home-quant">0.00</div>
+</div>
+    </section>
+
+    <!-- GRID MENU -->
+    <section id="homeGrid" class="glass p-4 rounded-2xl tab-content">
+      <div class="menu-grid grid grid-cols-4 gap-x-3 gap-y-4 place-items-center text-center">
+
+        <a class="menu-item" data-tab="withdraw">
+          <div class="menu-circle">
+            <svg class="menu-icon" viewBox="0 0 24 24">
+              <rect x="3" y="6.5" width="18" height="11" rx="2"></rect>
+              <line x1="6" y1="10" x2="18" y2="10"></line>
+              <rect class="fill" x="6" y="13" width="4.2" height="2.6" rx="0.6" opacity=".35"></rect>
+            </svg>
+          </div>
+          <span class="menu-title">Menarik</span>
+        </a>
+
+        <a class="menu-item">
+          <div class="menu-circle">
+            <svg class="menu-icon" viewBox="0 0 24 24">
+              <path d="M12 6a5 5 0 0 1 5 5c0 2-1 3.1-2 3.9-.6.5-1 1.1-1.1 1.8h-3.8c-.1-.7-.5-1.3-1.1-1.8-1-.8-2-1.9-2-3.9a5 5 0 0 1 5-5Z"></path>
+              <line x1="10" y1="19" x2="14" y2="19"></line>
+            </svg>
+          </div>
+          <span class="menu-title">Membantu</span>
+        </a>
+
+        <a class="menu-item">
+          <div class="menu-circle">
+            <svg class="menu-icon" viewBox="0 0 24 24">
+              <circle cx="9" cy="9" r="3"></circle>
+              <circle cx="16.5" cy="10.5" r="2.5"></circle>
+              <path d="M4.5 18a4.5 4.5 0 0 1 9 0"></path>
+              <path d="M13 18a3.8 3.8 0 0 1 7.5 0"></path>
+            </svg>
+          </div>
+          <span class="menu-title">Tim</span>
+        </a>
+
+        <a class="menu-item">
+          <div class="menu-circle">
+            <svg class="menu-icon" viewBox="0 0 24 24">
+              <rect x="5" y="4.5" width="14" height="15" rx="1.6"></rect>
+              <line x1="8" y1="9" x2="16" y2="9"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+              <line x1="8" y1="15" x2="13" y2="15"></line>
+            </svg>
+          </div>
+          <span class="menu-title">Aktivitas</span>
+        </a>
+
+        <a class="menu-item" data-tab="invite">
+          <div class="menu-circle">
+            <svg class="menu-icon" viewBox="0 0 24 24">
+              <rect x="4" y="6" width="16" height="12" rx="2"></rect>
+              <path d="M4 7.2l8 6 8-6"></path>
+            </svg>
+          </div>
+          <span class="menu-title">Mengundang teman</span>
+        </a>
+
+        <a class="menu-item">
+          <div class="menu-circle">
+            <svg class="menu-icon" viewBox="0 0 24 24">
+              <rect x="15.5" y="4.8" width="5" height="5" rx="1"></rect>
+              <path d="M16 7.3l1.2 1.2L20 5.7"></path>
+              <path d="M3.8 14.2l3.2-2.7a2.4 2.4 0 0 1 3.2.1l.9.9a2.6 2.6 0 0 0 3.5.1l1.4-1.3"></path>
+              <path d="M8.8 16.7l2.1-1.8"></path>
+              <path d="M11.4 17l1.7-1.4"></path>
+            </svg>
+          </div>
+          <span class="menu-title">Kerjasama Agen</span>
+        </a>
+
+        <a class="menu-item">
+          <div class="menu-circle">
+            <svg class="menu-icon" viewBox="0 0 24 24">
+              <rect x="4.5" y="5" width="15" height="14" rx="1.6"></rect>
+              <rect class="fill" x="6.8" y="7.5" width="6.2" height="3.5" rx="0.6" opacity=".28"></rect>
+              <line x1="6.8" y1="12.5" x2="16.8" y2="12.5"></line>
+              <line x1="6.8" y1="15.5" x2="13.5" y2="15.5"></line>
+            </svg>
+          </div>
+          <span class="menu-title">Berita</span>
+        </a>
+
+      </div>
+    </section>
+
+<!-- ===================== WITHDRAW ===================== -->
+<section id="withdrawTab" class="hidden tab-content">
+  <h2 class="text-lg font-semibold mb-3">Tarik Saldo</h2>
+
+  <div class="glass p-1 rounded-xl inline-flex mb-3">
+    <button id="wdTabWallet" type="button" class="px-3 py-1.5 rounded-lg tab-active">E-Wallet</button>
+    <button id="wdTabBank"   type="button" class="px-3 py-1.5 rounded-lg">Bank</button>
+  </div>
+
+  <!-- SALDO -->
+  <div class="grid grid-cols-2 gap-3 mb-3">
+    <div class="glass p-4 rounded-2xl">
+      <div class="text-slate-300 text-sm">Saldo Kuantitatif</div>
+      <div class="text-2xl font-bold pf-quant">0.00</div>
+    </div>
+    <div class="glass p-4 rounded-2xl">
+      <div class="text-slate-300 text-sm">Total aset</div>
+      <div class="text-2xl font-bold pf-total">Rp 0</div>
+      <div class="text-xs text-slate-400 pf-total-approx">≈ Rp 0</div>
+    </div>
+  </div>
+
+  <!-- FORM: E-WALLET -->
+  <form id="wdFormWallet" class="glass p-4 rounded-2xl space-y-3" novalidate>
+    <div class="text-sm text-slate-300 font-medium">E-Wallet</div>
+    <div class="grid grid-cols-3 gap-2">
+      <label class="chip cursor-pointer"><input type="radio" name="wallet" value="Dana"  class="sr-only" checked><span>Dana</span></label>
+      <label class="chip cursor-pointer"><input type="radio" name="wallet" value="OVO"   class="sr-only"><span>OVO</span></label>
+      <label class="chip cursor-pointer"><input type="radio" name="wallet" value="GoPay" class="sr-only"><span>GoPay</span></label>
+    </div>
+    <div class="grid gap-2">
+      <input type="tel"  id="wdwNumber" class="input" placeholder="Nomor e-wallet" inputmode="numeric">
+      <input type="text" id="wdwName"   class="input" placeholder="Nama pemilik">
+      <input type="number" id="wdwAmount" class="input" placeholder="min: 50000" step="1000" inputmode="numeric">
+      <small id="wdwError" class="text-rose-400 text-xs hidden"></small>
+    </div>
+    <button class="btn-primary w-full py-2 rounded-xl" type="submit">Ajukan Penarikan</button>
+    <p class="text-xs text-slate-400">Pengajuan akan dikirim ke admin untuk diverifikasi.</p>
+  </form>
+
+  <!-- FORM: BANK -->
+  <form id="wdFormBank" class="glass p-4 rounded-2xl space-y-3 hidden" novalidate>
+    <div class="text-sm text-slate-300 font-medium">Bank</div>
+    <div class="grid grid-cols-4 gap-2">
+      <label class="chip cursor-pointer"><input type="radio" name="bank" value="Mandiri" class="sr-only" checked><span>Mandiri</span></label>
+      <label class="chip cursor-pointer"><input type="radio" name="bank" value="BCA" class="sr-only"><span>BCA</span></label>
+      <label class="chip cursor-pointer"><input type="radio" name="bank" value="BNI" class="sr-only"><span>BNI</span></label>
+      <label class="chip cursor-pointer"><input type="radio" name="bank" value="BRI" class="sr-only"><span>BRI</span></label>
+    </div>
+    <div class="grid gap-2">
+      <input type="text"   id="wdbRek"   class="input" placeholder="No. Rekening" inputmode="numeric">
+      <input type="text"   id="wdbName"  class="input" placeholder="Nama pemilik">
+      <input type="number" id="wdbAmount" class="input" placeholder="min: 50000" step="1000" inputmode="numeric">
+      <small id="wdbError" class="text-rose-400 text-xs hidden"></small>
+    </div>
+    <button class="btn-primary w-full py-2 rounded-xl" type="submit">Ajukan Penarikan</button>
+    <p class="text-xs text-slate-400">Pengajuan akan dikirim ke admin untuk diverifikasi.</p>
+  </form>
+
+  <!-- Riwayat singkat -->
+  <div class="glass p-4 rounded-2xl mt-3">
+    <h3 class="text-base font-semibold mb-2">Riwayat Penarikan</h3>
+    <ul id="wdList" class="text-sm space-y-2 text-slate-300">
+      <li class="text-slate-400">Belum ada penarikan.</li>
+    </ul>
+  </div>
+</section>
+    <!-- ===================== MODAL PEMBELIAN (QR ADMIN) ===================== -->
+    <div id="buyModal" class="fixed inset-0 hidden items-center justify-center bg-black/70 z-50">
+      <div class="bg-slate-900 rounded-2xl p-4 w-[92%] max-w-md text-center relative">
+        <button id="closeBuy" class="absolute top-2 right-2 text-slate-400">✕</button>
+
+        <h3 class="text-lg font-semibold mb-1">Pembayaran</h3>
+        <p class="text-xs text-slate-400 mb-3">Scan QR berikut, lalu unggah bukti transfer.</p>
+
+        <div class="glass rounded-xl p-3 mb-3 text-left">
+          <div class="text-sm"><span class="text-slate-400">Hewan:</span> <b id="buyAnimal">-</b></div>
+          <div class="text-sm"><span class="text-slate-400">Harga:</span> <b id="buyPrice">Rp 0</b></div>
+          <div class="text-xs text-slate-400">Pastikan nominal transfer sesuai.</div>
+        </div>
+
+        <img id="buyQr" src="img/qr-admin.png" alt="QR Admin" class="mx-auto w-56 h-56 mb-2 rounded-lg bg-white p-2">
+        <a id="downloadQr" href="img/qr-admin.png" download="QR-Admin.png"
+           class="chip inline-flex items-center mb-3">⬇️ Download QR</a>
+
+        <form id="buyForm" class="space-y-3">
+          <input type="file" id="proof" accept="image/*" class="w-full text-sm text-slate-300">
+          <button id="buySubmit" class="btn-primary w-full py-2 rounded-xl" type="submit">Kirim Bukti</button>
+          <p id="buyNote" class="text-xs text-slate-400 mt-2 hidden"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================== FARM ===================== -->
+    <section id="farmTab" class="hidden tab-content">
+      <h2 class="section-title">Farm</h2>
+
+      <div class="farm-card glass">
+        <div class="farm-head">
+          <span class="chip subtle">Akun Kuantitatif</span>
+          <div class="farm-balance">0.00</div>
+        </div>
+
+        <h3 class="section-title mt-3">Pasar Ternak</h3>
+
+        <div id="marketList" class="market-list">
+          <!-- COW -->
+          <article class="market-card glass"
+                   data-animal="cow" data-price="160000" data-daily="17000" data-contract="90">
+            <div class="mc-top">
+              <img src="img/cow.png" alt="Cow" class="mc-img">
+              <div>
+                <div class="mc-title">COW</div>
+                <div class="mc-price">Harga: <b>Rp 160.000</b></div>
+              </div>
+            </div>
+            <div class="mc-stats">
+              <div class="mc-stat">
+                <div class="mc-big">Rp 17.000</div>
+                <div class="mc-sub">Pendapatan harian</div>
+              </div>
+              <div class="mc-stat">
+                <div class="mc-big mc-total">Rp 1.530.000</div>
+                <div class="mc-sub">Total pendapatan</div>
+              </div>
+              <div class="mc-stat">
+                <div class="mc-big mc-contract">90 hari</div>
+                <div class="mc-sub">Siklus</div>
+              </div>
+            </div>
+            <button class="buy-btn-green">Beli</button>
+          </article>
+
+          <!-- CHICKEN -->
+          <article class="market-card glass"
+                   data-animal="chicken" data-price="90000" data-daily="6000" data-contract="60">
+            <div class="mc-top">
+              <img src="img/chicken.png" alt="Chicken" class="mc-img">
+              <div>
+                <div class="mc-title">CHICKEN</div>
+                <div class="mc-price">Harga: <b>Rp 90.000</b></div>
+              </div>
+            </div>
+            <div class="mc-stats">
+              <div class="mc-stat">
+                <div class="mc-big">Rp 6.000</div>
+                <div class="mc-sub">Pendapatan harian</div>
+              </div>
+              <div class="mc-stat">
+                <div class="mc-big mc-total">Rp 360.000</div>
+                <div class="mc-sub">Total pendapatan</div>
+              </div>
+              <div class="mc-stat">
+                <div class="mc-big mc-contract">60 hari</div>
+                <div class="mc-sub">Siklus</div>
+              </div>
+            </div>
+            <button class="buy-btn-green">Beli</button>
+          </article>
+
+          <!-- SHEEP -->
+          <article class="market-card glass"
+                   data-animal="sheep" data-price="250000" data-daily="11000" data-contract="75">
+            <div class="mc-top">
+              <img src="img/sheep.png" alt="Sheep" class="mc-img">
+              <div>
+                <div class="mc-title">SHEEP</div>
+                <div class="mc-price">Harga: <b>Rp 250.000</b></div>
+              </div>
+            </div>
+            <div class="mc-stats">
+              <div class="mc-stat">
+                <div class="mc-big">Rp 11.000</div>
+                <div class="mc-sub">Pendapatan harian</div>
+              </div>
+              <div class="mc-stat">
+                <div class="mc-big mc-total">Rp 825.000</div>
+                <div class="mc-sub">Total pendapatan</div>
+              </div>
+              <div class="mc-stat">
+                <div class="mc-big mc-contract">75 hari</div>
+                <div class="mc-sub">Siklus</div>
+              </div>
+            </div>
+            <button class="buy-btn-green">Beli</button>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== INVITE ===================== -->
+    <section id="inviteTab" class="hidden tab-content">
+      <h2 class="text-lg font-semibold mb-2">Mengundang teman</h2>
+      <div class="glass p-4 rounded-2xl">
+        <p class="text-sm text-slate-300 mb-2">Bagikan tautan undangan Anda untuk mendapatkan bonus.</p>
+        <div class="flex gap-2">
+          <input id="inviteLink" class="flex-1 rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2" readonly/>
+          <button id="copyInvite" class="btn-primary px-3 py-2 rounded-xl text-sm">Salin</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== PROFILE ===================== -->
+    <section id="profileTab" class="hidden tab-content">
+      <h2 class="text-lg font-semibold mb-2">Aku</h2>
+
+      <div class="glass p-4 rounded-2xl mb-3">
+        <div class="text-sm">
+          <span class="text-slate-400">UID:</span> <span id="uid">—</span>
+        </div>
+        <div class="text-sm">
+          <span class="text-slate-400">Masuk sebagai</span>: <span id="who">—</span>
+        </div>
+      </div>
+
+      <div class="glass p-4 rounded-2xl">
+        <h3 class="text-base font-semibold mb-3">Ringkasan Farm</h3>
+
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <div class="glass p-4 rounded-2xl">
+            <div class="chip">Aset Keuntungan</div>
+            <div class="text-2xl font-bold pf-profit">0.00</div>
+          </div>
+          <div class="glass p-4 rounded-2xl">
+            <div class="chip">Penghasilan Hari Ini</div>
+            <div class="text-2xl font-bold pf-today">0</div>
+          </div>
+          <div class="glass p-4 rounded-2xl">
+            <div class="chip">Total Pendapatan</div>
+            <div class="text-2xl font-bold pf-income">0.00</div>
+          </div>
+          <div class="glass p-4 rounded-2xl">
+            <div class="chip">Jumlah Hari yang Dapat Dihitung</div>
+            <div class="text-2xl font-bold pf-countable">210</div>
+          </div>
+          <div class="glass p-4 rounded-2xl col-span-2 sm:col-span-1">
+            <div class="chip">Hari Hitung Mundur</div>
+            <div class="text-2xl font-bold pf-countdown">210</div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <button class="chip strong w-full justify-center">
+            <span>Catatan transaksi</span>
+            <span class="sep">››</span>
+            <span>0 / 0</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Tabbar -->
+  <nav class="fixed left-0 right-0 bottom-0 px-4 py-2 bg-slate-900/80 backdrop-blur border-t border-white/10">
+    <div class="grid grid-cols-4 text-center">
+      <button class="tabbtn tab-active" data-tab="home"><div>🏠</div><div class="text-xs">Rumah</div></button>
+      <button class="tabbtn" data-tab="farm"><div>🌾</div><div class="text-xs">Farm</div></button>
+      <button class="tabbtn" data-tab="invite"><div>💌</div><div class="text-xs">Mengundang teman</div></button>
+      <button class="tabbtn" data-tab="profile"><div>👤</div><div class="text-xs">Aku</div></button>
+    </div>
+  </nav>
+
+  <!-- Language Sheet -->
+  <div id="langSheet" class="fixed inset-0 hidden">
+    <div class="absolute inset-0 bg-black/60" data-close></div>
+    <div class="absolute left-0 right-0 bottom-0 rounded-t-3xl glass p-4 max-h-[70vh] overflow-auto">
+      <h3 class="text-center text-base font-semibold mb-3">language</h3>
+      <ul id="langList" class="divide-y divide-white/5"></ul>
+    </div>
+  </div>
+
+  <!-- ========= Scripts ========= -->
+<script type="module" src="js/app-core.js"></script>
+  <script type="module" src="js/firebase-init.js"></script>
+  <script type="module" src="js/i18n.js"></script>
+  <script type="module" src="js/features/withdraw.js"></script>
+  <script type="module" src="js/dashboard.js"></script>
+  <script type="module">
+  import { initBalanceWatcher } from './js/features/balance.js';
+  initBalanceWatcher();
+</script>
+  <script type="module">
+  import { initFarm, initFarmCards } from './js/features/farm.js?v=5';
+  window.addEventListener('DOMContentLoaded', () => {
+    initFarm();
+    initFarmCards();
+  });
+</script>
+
+  <!-- Fallback: buka modal QR walau farm.js gagal -->
+  <script>
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest('.buy-btn, .buy-btn-green, .btn-buy');
+      if (!btn) return;
+
+      const card   = btn.closest('[data-animal]');
+      const nameEl = document.getElementById('buyAnimal');
+      const priceEl= document.getElementById('buyPrice');
+
+      if (card) {
+        const name  = (card.dataset.animal || card.querySelector('.mc-title')?.textContent || 'ITEM').toUpperCase();
+        const price = Number(card.dataset.price || 0);
+        if (nameEl)  nameEl.textContent  = name;
+        if (priceEl) priceEl.textContent = new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(price);
+      }
+
+      const modal = document.getElementById('buyModal');
+      if (modal) { modal.classList.remove('hidden'); modal.style.display = 'flex'; }
+    });
+
+    document.addEventListener('click', function (e) {
+      if (e.target.id === 'closeBuy') {
+        const modal = document.getElementById('buyModal');
+        if (modal) { modal.classList.add('hidden'); modal.style.display = 'none'; }
+      }
+    });
+  </script>
+  <!-- Slider auto-run -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const track = document.getElementById('homeSlider');
+      if (!track) return;
+      const dots  = Array.from((document.getElementById('homeDots')||{}).children || []);
+      let i = 0;
+      const total = track.children.length;
+      function go(idx) {
+        i = (idx + total) % total;
+        track.style.transform = `translateX(-${i * 100}%)`;
+        dots.forEach((d, k) => d.className = 'w-2 h-2 rounded-full ' + (k===i ? 'bg-white/70' : 'bg-white/30'));
+      }
+      setInterval(() => go(i + 1), 2000);
+    });
+  </script>
+</body>
+</html>

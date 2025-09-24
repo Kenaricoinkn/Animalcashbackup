@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Animals Cash — Daftar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/styles.css"/>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+
+  <main class="max-w-md mx-auto px-4 pt-10 pb-16">
+    <h1 class="brand-title text-2xl mb-6">Animals Cash</h1>
+
+    <section class="glass rounded-2xl p-4 sm:p-5">
+      <!-- Tabs -->
+      <div class="flex gap-6 text-lg mb-4">
+        <button id="tabEmail" class="tab-active">Daftar Email</button>
+        <button id="tabPhone">Daftar Telepon</button>
+      </div>
+
+      <!-- ==== Email form ==== -->
+      <form id="emailForm" class="space-y-3">
+        <label class="block text-sm text-slate-300">Email</label>
+        <input id="email" type="email" class="w-full rounded-xl bg-slate-900/70 border border-white/10 px-3 py-3"
+               placeholder="nama@email.com" autocomplete="email" />
+
+        <label class="block text-sm text-slate-300 mt-2">Kata sandi</label>
+        <div class="relative">
+          <input id="password" type="password"
+                 class="w-full rounded-xl bg-slate-900/70 border border-white/10 px-3 py-3 pr-10"
+                 autocomplete="new-password" />
+          <button type="button" class="eye-btn" aria-label="toggle" data-toggle="#password"></button>
+        </div>
+
+        <div id="passConfirmWrapEmail" class="relative">
+          <input id="password2" type="password"
+                 class="w-full rounded-xl bg-slate-900/70 border border-white/10 px-3 py-3 pr-10"
+                 placeholder="Ulangi kata sandi" autocomplete="new-password" />
+          <button type="button" class="eye-btn" aria-label="toggle" data-toggle="#password2"></button>
+        </div>
+
+        <button id="emailSubmit" type="submit"
+                class="btn-primary w-full mt-3 rounded-xl py-3 font-semibold">Daftar</button>
+      </form>
+
+      <!-- ==== Phone form ==== -->
+      <form id="phoneForm" class="space-y-3 hidden">
+        <label class="block text-sm text-slate-300">Telepon</label>
+        <div class="flex gap-2">
+          <select id="country" class="rounded-xl bg-slate-900/70 border border-white/10 px-2">
+            <option value="+62">+62</option>
+            <option value="+60">+60</option>
+            <option value="+65">+65</option>
+            <option value="+1">+1</option>
+          </select>
+          <input id="phone" type="tel" class="flex-1 rounded-xl bg-slate-900/70 border border-white/10 px-3 py-3"
+                 placeholder="812xxxxxxx" autocomplete="tel" />
+        </div>
+
+        <label class="block text-sm text-slate-300 mt-2">Kata sandi</label>
+        <div class="relative">
+          <input id="phonePass" type="password"
+                 class="w-full rounded-xl bg-slate-900/70 border border-white/10 px-3 py-3 pr-10"
+                 autocomplete="new-password" />
+          <button type="button" class="eye-btn" aria-label="toggle" data-toggle="#phonePass"></button>
+        </div>
+
+        <div id="passConfirmWrapPhone" class="relative">
+          <input id="phonePass2" type="password"
+                 class="w-full rounded-xl bg-slate-900/70 border border-white/10 px-3 py-3 pr-10"
+                 placeholder="Ulangi kata sandi" autocomplete="new-password" />
+          <button type="button" class="eye-btn" aria-label="toggle" data-toggle="#phonePass2"></button>
+        </div>
+
+        <button id="phoneSubmit" type="submit"
+                class="btn-primary w-full mt-3 rounded-xl py-3 font-semibold">Daftar</button>
+      </form>
+
+      <!-- switch ke login -->
+      <p class="text-center text-sm text-slate-300 mt-4">
+        <span id="switchLine">Sudah memiliki akun?</span>
+        <a id="switchLink" href="index.html" class="text-blue-300 font-semibold">Gabung</a>
+      </p>
+    </section>
+  </main>
+
+  <!-- ORDER SCRIPTS PENTING -->
+  <script src="js/app-core.js" defer></script>
+  <script>window.AUTH_MODE='register';</script>
+  <script type="module" src="js/firebase-init.js"></script>
+  <script type="module" src="js/auth-tabs.js"></script>
+  <script type="module" src="js/register.js"></script>
+</body>
+</html>
