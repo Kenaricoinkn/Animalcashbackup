@@ -10,7 +10,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 /* =================== CONFIG (jalur darurat) =================== */
 const FALLBACK_ADMIN_UIDS = [
-  // "UID_ADMIN_KAMU"
+  // "QPQaZBzEvvV2Ob7kUpnsEVwm6dk1"
 ];
 
 /* =================== HELPERS =================== */
