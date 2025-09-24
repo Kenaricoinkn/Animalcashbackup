@@ -1,4 +1,4 @@
-// admin/js/admin.js â€” aligned with rules (transactions uses type/refId)
+// admin/js/admin.js
 import {
   getAuth, onAuthStateChanged, signOut,
   RecaptchaVerifier, signInWithPhoneNumber,
@@ -8,10 +8,9 @@ import {
   getFirestore, collection, query, where, orderBy, limit, getDocs,
   doc, updateDoc, increment, addDoc, serverTimestamp, getDoc, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 /* =================== CONFIG (jalur darurat) =================== */
 const FALLBACK_ADMIN_UIDS = [
-  // "QPQaZBzEvvV2Ob7kUpnsEVwm6dk1"
+  // "UID_ADMIN_KAMU"
 ];
 
 /* =================== HELPERS =================== */
@@ -50,6 +49,7 @@ $('#btnRefreshPurch')?.addEventListener('click', loadPurchPending);
 $('#btnRefreshWd')?.addEventListener('click', loadWdPending);
 $('#btnRefreshAll')?.addEventListener('click', loadHistoryAll);
 
+/* =================== FIREBASE =================== */
 /* =================== FIREBASE =================== */
 const auth = window.App?.firebase?.auth || getAuth();
 const db   = window.App?.firebase?.db   || getFirestore();
@@ -106,6 +106,7 @@ btnVerifyOTP?.addEventListener('click', async ()=>{
     const usnap = await getDoc(doc(db,'users',uid));
     if(!usnap.exists()){ loginMsg.textContent=`Dokumen users/${uid} tidak ditemukan.`; return; }
     const u = usnap.data()||{};
+    console.log('[DEBUG] user doc:', u);
 
     // 3) Cek hak admin
     const token         = await user.getIdTokenResult();
@@ -223,10 +224,9 @@ async function approvePurchase(e){
 
     await runTransaction(db, async (tx)=>{
       const pRef   = doc(db, 'purchases', id);
-
-      // === READS FIRST ===
       const pSnap  = await tx.get(pRef);
       if(!pSnap.exists()) throw new Error('Dokumen purchase tidak ditemukan.');
+
       const p = pSnap.data();
       if(p.status !== 'pending') throw new Error('Purchase sudah diproses (bukan PENDING).');
 
@@ -234,14 +234,12 @@ async function approvePurchase(e){
       const animal= String(p.animal || '').trim();
       const price = Number(p.price || 0);
 
+      // READ owned before any write
       const ownedRef = doc(db, 'users', uid, 'animals', animal);
       const ownedSnap = await tx.get(ownedRef);
 
-      // === WRITES AFTER ALL READS ===
-      tx.update(pRef, {
-        status: 'approved',
-        approvedAt: serverTimestamp()
-      });
+      // WRITE after reads
+      tx.update(pRef, { status: 'approved', approvedAt: serverTimestamp() });
 
       if(!ownedSnap.exists()){
         tx.set(ownedRef, {
@@ -260,6 +258,7 @@ async function approvePurchase(e){
         });
       }
 
+      // transactions schema aligned with rules
       const tRef = doc(collection(db, 'transactions'));
       tx.set(tRef, {
         uid,
@@ -270,46 +269,6 @@ async function approvePurchase(e){
       });
     });
 
-    await loadPurchPending();
-    await loadHistoryAll();
-  }catch(err){
-    console.error(err);
-    toast('Gagal approve purchase.');
-  }
-}
-      const ownedRef = doc(db, 'users', uid, 'animals', animal);
-      const ownedSnap = await tx.get(ownedRef);
-
-      if(!ownedSnap.exists()){
-        tx.set(ownedRef, {
-          animal,
-          daily: Number(p.daily || 0),
-          contractDays: Number(p.contractDays || 0),
-          purchasedAt: serverTimestamp(),
-          purchaseId: id,
-          active: true
-        });
-      }else{
-        // kalau sudah ada, pastikan aktif & simpan purchaseId terakhir
-        tx.update(ownedRef, {
-          active: true,
-          purchaseId: id,
-          lastApprovedAt: serverTimestamp()
-        });
-      }
-
-      // 3) catat log sesuai rules (pakai 'type' & 'refId')
-      const tRef = doc(collection(db, 'transactions'));
-      tx.set(tRef, {
-        uid,
-        type: 'purchase_approved',
-        refId: id,
-        amount: price,
-        createdAt: serverTimestamp()
-      });
-    });
-
-    // refresh tabel setelah berhasil
     await loadPurchPending();
     await loadHistoryAll();
   }catch(err){
@@ -331,7 +290,6 @@ async function rejectPurchase(e){
 
     await updateDoc(ref,{ status:'rejected', rejectedAt: serverTimestamp() });
 
-    // Tulis log sesuai rules
     await addDoc(collection(db,'transactions'), {
       uid: d.uid,
       type: 'purchase_rejected',
@@ -347,7 +305,6 @@ async function rejectPurchase(e){
     toast('Gagal reject purchase.');
   }
 }
-
 // Withdrawals Pending
 async function loadWdPending(){
   if(!tblWdBody) return;
@@ -398,9 +355,7 @@ async function approveWithdrawal(e){
 
     const uid=d.uid; const amount=Number(d.amount||0);
     await updateDoc(ref,{status:'approved', approvedAt: serverTimestamp()});
-
     await updateDoc(doc(db,'users',uid), { balance: increment(-amount) });
-
     await addDoc(collection(db,'transactions'), {
       uid, type:'withdrawal_approved', refId:id, amount, createdAt:serverTimestamp()
     });
@@ -411,16 +366,7 @@ async function approveWithdrawal(e){
 async function rejectWithdrawal(e){
   try{
     const tr=e.target.closest('tr'); const id=tr?.dataset?.id; if(!id) return;
-    const ref=doc(db,'withdrawals',id); const snap=await getDoc(ref);
-    if(!snap.exists()) throw new Error('Doc tidak ditemukan.');
-    const d=snap.data();
-
-    await updateDoc(ref,{ status:'rejected', rejectedAt: serverTimestamp() });
-
-    await addDoc(collection(db,'transactions'), {
-      uid: d.uid, type:'withdrawal_rejected', refId:id, amount:Number(d.amount||0), createdAt:serverTimestamp()
-    });
-
+    await updateDoc(doc(db,'withdrawals',id), { status:'rejected', rejectedAt: serverTimestamp() });
     await loadWdPending(); await loadHistoryAll();
   }catch(err){ console.error(err); toast('Gagal reject withdrawal.'); }
 }
