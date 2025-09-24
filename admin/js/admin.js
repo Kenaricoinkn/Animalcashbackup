@@ -84,15 +84,13 @@ btnSendOTP?.addEventListener('click', async ()=>{
     const phone = (phoneInput.value||'').trim();
     if(!/^\+?\d{8,15}$/.test(phone)){ loginMsg.textContent='Format nomor tidak valid. Gunakan +62…'; return; }
     initRecaptcha();
-    try { await recaptchaVerifier.render(); } catch(_e) {}
+    try { await recaptchaVerifier.render(); } catch(_) {}
     confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
     otpWrap.classList.remove('hidden');
     toast('OTP terkirim. Cek SMS.');
-  }catch(e){
-    console.error(e);
-    const msg = String(e && (e.code||e.message)||e);
-    if (msg.includes('auth/missing-recaptcha-token') || msg.includes('auth/invalid-app-credential')) {
-      loginMsg.textContent = 'Verifikasi gagal: kemungkinan cookie pihak ketiga diblokir atau domain belum diotorisasi. Aktifkan "Allow third-party cookies" untuk situs ini dan pastikan domain sudah ditambahkan di Firebase Authentication > Settings > Authorized domains.';
+  }catch(e){ console.error(e); const msg=String(e && (e.code||e.message)||e);
+    if(msg.includes('auth/missing-recaptcha-token')||msg.includes('auth/invalid-app-credential')){
+      loginMsg.textContent='Verifikasi gagal: aktifkan third-party cookies untuk situs ini dan pastikan domain sudah terdaftar di Firebase Auth > Authorized domains.';
     } else {
       loginMsg.textContent='Gagal mengirim OTP. Coba lagi.';
     }
