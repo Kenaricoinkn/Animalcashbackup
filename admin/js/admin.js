@@ -1,4 +1,4 @@
-// admin/js/admin.js â€” aligned with rules (transactions uses type/refId)
+// admin/js/admin.js — aligned with rules (transactions uses type/refId)
 import {
   getAuth, onAuthStateChanged, signOut,
   RecaptchaVerifier, signInWithPhoneNumber,
@@ -80,7 +80,7 @@ btnSendOTP?.addEventListener('click', async ()=>{
   try{
     loginMsg.textContent = '';
     const phone = (phoneInput.value||'').trim();
-    if(!/^\+?\d{8,15}$/.test(phone)){ loginMsg.textContent='Format nomor tidak valid. Gunakan +62â€¦'; return; }
+    if(!/^\+?\d{8,15}$/.test(phone)){ loginMsg.textContent='Format nomor tidak valid. Gunakan +62…'; return; }
     initRecaptcha();
     confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
     otpWrap.classList.remove('hidden');
@@ -115,7 +115,7 @@ btnVerifyOTP?.addEventListener('click', async ()=>{
 
     if(!isAdmin){ loginMsg.textContent='Nomor ini tidak memiliki hak admin (isAdmin=false).'; return; }
 
-    // 4) PIN Admin (opsional â€” wajib jika field ada)
+    // 4) PIN Admin (opsional — wajib jika field ada)
     if(u.adminPinHash){
       const pin=(pinInput.value||'').trim();
       if(!pin){ loginMsg.textContent='Masukkan PIN Admin.'; return; }
@@ -124,7 +124,7 @@ btnVerifyOTP?.addEventListener('click', async ()=>{
       if(inHash!==docHash){ loginMsg.textContent='PIN Admin salah.'; return; }
     }
 
-    // 5) Sukses â†’ buka panel
+    // 5) Sukses → buka panel
     loginCard.classList.add('hidden');
     adminArea.classList.remove('hidden');
     emailBox.textContent = user.phoneNumber || user.uid;
@@ -184,7 +184,7 @@ async function loadPurchPending(){
         id:d.id,
         time:toLocal(v.createdAt),
         uid:v.uid,
-        item:`${v.animal||'-'} â€¢ harian ${fmtRp(v.daily||0)} â€¢ ${v.contractDays||0} hari`,
+        item:`${v.animal||'-'} • harian ${fmtRp(v.daily||0)} • ${v.contractDays||0} hari`,
         price:v.price,
         proofUrl:v.proofUrl||'',
         status:v.status||'pending'
@@ -195,7 +195,7 @@ async function loadPurchPending(){
   else{ tblPurchBody.innerHTML=rows.join(''); bindPurchActions(tblPurchBody); }
 }
 function renderPurchRow({id,time,uid,item,price,proofUrl,status}){
-  const proof = proofUrl ? `<a href="${proofUrl}" target="_blank" class="text-sky-300 underline">Bukti</a>` : `<span class="opacity-60">â€”</span>`;
+  const proof = proofUrl ? `<a href="${proofUrl}" target="_blank" class="text-sky-300 underline">Bukti</a>` : `<span class="opacity-60">—</span>`;
   return `
     <tr data-id="${id}">
       <td class="py-2">${time}</td>
@@ -222,24 +222,60 @@ async function approvePurchase(e){
 
     await runTransaction(db, async (tx)=>{
       const pRef   = doc(db, 'purchases', id);
+
+      // === READS FIRST ===
       const pSnap  = await tx.get(pRef);
       if(!pSnap.exists()) throw new Error('Dokumen purchase tidak ditemukan.');
-
       const p = pSnap.data();
       if(p.status !== 'pending') throw new Error('Purchase sudah diproses (bukan PENDING).');
 
       const uid   = String(p.uid);
-      const animal= String(p.animal || '').trim();          // contoh: "COW"/"SHEEP" dst
+      const animal= String(p.animal || '').trim();
       const price = Number(p.price || 0);
 
-      // 1) set approved pada purchase
+      const ownedRef = doc(db, 'users', uid, 'animals', animal);
+      const ownedSnap = await tx.get(ownedRef);
+
+      // === WRITES AFTER ALL READS ===
       tx.update(pRef, {
         status: 'approved',
         approvedAt: serverTimestamp()
       });
 
-      // 2) beri kepemilikan ternak ke user (aktifkan jika sudah ada)
-      //    struktur: users/{uid}/animals/{animalId}
+      if(!ownedSnap.exists()){
+        tx.set(ownedRef, {
+          animal,
+          daily: Number(p.daily || 0),
+          contractDays: Number(p.contractDays || 0),
+          purchasedAt: serverTimestamp(),
+          purchaseId: id,
+          active: true
+        });
+      }else{
+        tx.update(ownedRef, {
+          active: true,
+          purchaseId: id,
+          lastApprovedAt: serverTimestamp()
+        });
+      }
+
+      const tRef = doc(collection(db, 'transactions'));
+      tx.set(tRef, {
+        uid,
+        type: 'purchase_approved',
+        refId: id,
+        amount: price,
+        createdAt: serverTimestamp()
+      });
+    });
+
+    await loadPurchPending();
+    await loadHistoryAll();
+  }catch(err){
+    console.error(err);
+    toast('Gagal approve purchase.');
+  }
+}
       const ownedRef = doc(db, 'users', uid, 'animals', animal);
       const ownedSnap = await tx.get(ownedRef);
 
@@ -324,8 +360,8 @@ async function loadWdPending(){
     snap.forEach(d=>{
       const v=d.data()||{};
       const tujuan = v.type==='ewallet'
-        ? `${v.provider||'-'} â€¢ ${v.number||'-'} â€¢ ${v.name||'-'}`
-        : `${v.bank||'-'} â€¢ ${v.account||'-'} â€¢ ${v.owner||'-'}`;
+        ? `${v.provider||'-'} • ${v.number||'-'} • ${v.name||'-'}`
+        : `${v.bank||'-'} • ${v.account||'-'} • ${v.owner||'-'}`;
       rows.push(renderWdRow({
         id:d.id, time:toLocal(v.createdAt), uid:v.uid, tujuan, amount:v.amount, status:v.status||'pending'
       }));
@@ -404,7 +440,7 @@ async function loadHistoryAll(){
       rows.push(renderHist({
         time:toLocal(v.createdAt), jenis:'Purchase', uid:v.uid,
         amount:v.price,
-        ref: v.proofUrl ? `<a href="${v.proofUrl}" target="_blank" class="text-sky-300 underline">Bukti</a>` : 'â€”',
+        ref: v.proofUrl ? `<a href="${v.proofUrl}" target="_blank" class="text-sky-300 underline">Bukti</a>` : '—',
         status:v.status
       }));
     });
@@ -417,7 +453,7 @@ async function loadHistoryAll(){
     const sw=await getDocs(qw);
     sw.forEach(d=>{
       const v=d.data()||{};
-      const tujuan=v.type==='ewallet' ? `${v.provider||'-'} â€¢ ${v.number||'-'}` : `${v.bank||'-'} â€¢ ${v.account||'-'}`;
+      const tujuan=v.type==='ewallet' ? `${v.provider||'-'} • ${v.number||'-'}` : `${v.bank||'-'} • ${v.account||'-'}`;
       rows.push(renderHist({
         time:toLocal(v.createdAt), jenis:'Withdrawal', uid:v.uid,
         amount:v.amount, ref:escapeHtml(tujuan), status:v.status
